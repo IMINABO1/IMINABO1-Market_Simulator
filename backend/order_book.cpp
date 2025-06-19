@@ -30,6 +30,15 @@ class Order{
                         << "Side : " << (side ? "Buy" : "Sell") << ",\n"
                         << "Timestamp : " << timestamp << ",\n";
         }
+
+        // compare two orders
+        bool operator==(const Order& other) const{
+            return (order_id == other.order_id) &&
+                    (price ==  other.price) &&
+                    (quantity == other.quantity)&&
+                    (side == other.side) &&
+                    (timestamp == other.timestamp);
+        }
         
         // getters
         int get_order_id() const {return order_id;}
@@ -95,7 +104,7 @@ class OrderBook{
                 auto range = buy_orders.equal_range(bought_order_ptr -> get_price());
 
                 for(auto it = range.first; it != range.second; ++it){
-                    if(it->second == bought_order_ptr){
+                    if(it->second == *bought_order_ptr){
                         buy_orders.erase(it);
                         break;
                     }
@@ -104,10 +113,10 @@ class OrderBook{
 
             //remove sell
             if(sold_order_ptr){
-                auto& range  = sell_orders.equal_range(sold_order_ptr -> get_price());
+                auto range  = sell_orders.equal_range(sold_order_ptr -> get_price());
 
                 for(auto it = range.first; it != range.second; ++it){
-                    if(it->second == sold_order_ptr){
+                    if(it->second == *sold_order_ptr){
                         sell_orders.erase(it);
                         break;
                     }
@@ -123,12 +132,15 @@ class OrderBook{
             std::cout << "\nBuy Orders:\n";
             for(auto& order_item : buy_orders){
                 order_item.second.repr();
+                std::cout << "\n";
+
             }
 
             //print sell
             std::cout << "\nSell Orders:\n";
             for(auto& order_item : sell_orders){
                 order_item.second.repr();
+                std::cout << "\n";
             }
         }
 
@@ -138,6 +150,8 @@ class OrderBook{
                 std::cout << "\nBuy Orders:\n";
                 for(auto& order_item : buy_orders){
                     order_item.second.repr();
+                    std::cout << "\n";
+
                 }
                 return;
             }
@@ -146,6 +160,7 @@ class OrderBook{
             std::cout << "\nSell Orders:\n";
             for(const auto& order_item : sell_orders){
                 order_item.second.repr();
+                std::cout << "\n";
             }
         }
 
@@ -166,11 +181,28 @@ class OrderBook{
 
 int main(){
     std::time_t now = std::time(0); // current time
-    Order order(1, 100.68, 10, true, now);
+    
+    OrderBook order_book;
 
-    order.repr();
+    Order order1(1, 100.4, 10, true, now);
+    Order order2(2, 200.4, 5, true, now);
+    Order order3(3, 80.4, 1, false, now);
+    Order order4(4, 14.78, 40, false, now);
 
-    order.toggle_side();
-    std::cout << order.get_side() << "\n";
+    order_book.add_order(order1);
+    order_book.add_order(order2);
+    order_book.add_order(order3);
+    order_book.add_order(order4);
+
+    std::cout << "Order Book after adding orders" << "\n";
+    order_book.repr();
+
+    order_book.remove_order(3);
+    std::cout << "Order Book after removing order 3" << "\n";
+    order_book.repr();
+
+    // std::cout << "The best bid is " << order_book.get_best_bid().repr() << "\n";
+    std::cout << "The best bid is \n";
+    order_book.get_best_bid().repr();
     return 0;
 }
