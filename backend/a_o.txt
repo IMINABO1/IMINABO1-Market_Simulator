@@ -1,0 +1,126 @@
+Adding limit orders...
+
+Order book state:
+
+Buy Orders:
+Order Id : 1,
+Price : 100,
+Quantity : 10,
+Side : Buy,
+Type : Limit,
+Timestamp : 1750359231
+
+
+Sell Orders:
+Order Id : 2,
+Price : 101,
+Quantity : 5,
+Side : Sell,
+Type : Limit,
+Timestamp : 1750359231
+
+
+Adding market buy order (should match with sell order)...
+Trade: Buy Order 3 | Sell Order 2 | Price: 101 | Quantity: 5
+
+Order book state after market order:
+
+Buy Orders:
+Order Id : 1,
+Price : 100,
+Quantity : 10,
+Side : Buy,
+Type : Limit,
+Timestamp : 1750359231
+
+
+Sell Orders:
+
+Trade log:
+
+=== Trade Log ===
+Trade: Buy Order 3 | Sell Order 2 | Price: 101 | Quantity: 5
+================
+
+Testing is_expired (wait 6 seconds for expiry):
+Order 4 expired? Yes
+
+Testing add_order_legacy:
+
+Buy Orders:
+Order Id : 1,
+Price : 100,
+Quantity : 10,
+Side : Buy,
+Type : Limit,
+Timestamp : 1750359231
+
+
+Sell Orders:
+Order Id : 5,
+Price : 98,
+Quantity : 2,
+Side : Sell,
+Type : Limit,
+Timestamp : 1750359237
+
+
+Testing remove_order (removing order 5):
+
+Buy Orders:
+Order Id : 1,
+Price : 100,
+Quantity : 10,
+Side : Buy,
+Type : Limit,
+Timestamp : 1750359231
+
+
+Sell Orders:
+
+Testing update_order (change price and side of order 1):
+
+Buy Orders:
+
+Sell Orders:
+Order Id : 1,
+Price : 105,
+Quantity : 10,
+Side : Sell,
+Type : Limit,
+Timestamp : 1750359231
+
+
+Testing clean_expired_orders:
+Expired orders are cleaned automatically during matching.
+
+No best bid: No buy order available
+
+Best Ask:
+Order Id : 1,
+Price : 105,
+Quantity : 10,
+Side : Sell,
+Type : Limit,
+Timestamp : 1750359231
+
+Testing repr(true) for buy orders:
+
+Buy Orders:
+
+Testing repr(false) for sell orders:
+
+Sell Orders:
+Order Id : 1,
+Price : 105,
+Quantity : 10,
+Side : Sell,
+Type : Limit,
+Timestamp : 1750359231
+
+
+Testing repr_trade_log:
+
+=== Trade Log ===
+Trade: Buy Order 3 | Sell Order 2 | Price: 101 | Quantity: 5
+================

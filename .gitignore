@@ -1,6 +1,9 @@
 *.pyc
 *.exe
 backend_py/__pycache__/
+
+backend_py/venv/
+backend_py/venv/
 .env/
 backend/order_book.exe
 order_book.exe
