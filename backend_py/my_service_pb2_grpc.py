@@ -25,7 +25,7 @@ if _version_not_supported:
     )
 
 
-class OrderBookStub(object):
+class OrderBookServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -34,15 +34,31 @@ class OrderBookStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.AddOrder = channel.unary_unary(
+                '/OrderBookService/AddOrder',
+                request_serializer=my__service__pb2.OrderRequest.SerializeToString,
+                response_deserializer=my__service__pb2.OrderResponse.FromString,
+                _registered_method=True)
         self.GetBestBid = channel.unary_unary(
-                '/OrderBook/GetBestBid',
-                request_serializer=my__service__pb2.BidRequest.SerializeToString,
-                response_deserializer=my__service__pb2.BidResponse.FromString,
+                '/OrderBookService/GetBestBid',
+                request_serializer=my__service__pb2.Empty.SerializeToString,
+                response_deserializer=my__service__pb2.OrderResponse.FromString,
+                _registered_method=True)
+        self.GetBestAsk = channel.unary_unary(
+                '/OrderBookService/GetBestAsk',
+                request_serializer=my__service__pb2.Empty.SerializeToString,
+                response_deserializer=my__service__pb2.OrderResponse.FromString,
                 _registered_method=True)
 
 
-class OrderBookServicer(object):
+class OrderBookServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
+
+    def AddOrder(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
     def GetBestBid(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -50,24 +66,67 @@ class OrderBookServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetBestAsk(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
-def add_OrderBookServicer_to_server(servicer, server):
+
+def add_OrderBookServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'AddOrder': grpc.unary_unary_rpc_method_handler(
+                    servicer.AddOrder,
+                    request_deserializer=my__service__pb2.OrderRequest.FromString,
+                    response_serializer=my__service__pb2.OrderResponse.SerializeToString,
+            ),
             'GetBestBid': grpc.unary_unary_rpc_method_handler(
                     servicer.GetBestBid,
-                    request_deserializer=my__service__pb2.BidRequest.FromString,
-                    response_serializer=my__service__pb2.BidResponse.SerializeToString,
+                    request_deserializer=my__service__pb2.Empty.FromString,
+                    response_serializer=my__service__pb2.OrderResponse.SerializeToString,
+            ),
+            'GetBestAsk': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetBestAsk,
+                    request_deserializer=my__service__pb2.Empty.FromString,
+                    response_serializer=my__service__pb2.OrderResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'OrderBook', rpc_method_handlers)
+            'OrderBookService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('OrderBook', rpc_method_handlers)
+    server.add_registered_method_handlers('OrderBookService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class OrderBook(object):
+class OrderBookService(object):
     """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def AddOrder(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrderBookService/AddOrder',
+            my__service__pb2.OrderRequest.SerializeToString,
+            my__service__pb2.OrderResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
 
     @staticmethod
     def GetBestBid(request,
@@ -83,9 +142,36 @@ class OrderBook(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/OrderBook/GetBestBid',
-            my__service__pb2.BidRequest.SerializeToString,
-            my__service__pb2.BidResponse.FromString,
+            '/OrderBookService/GetBestBid',
+            my__service__pb2.Empty.SerializeToString,
+            my__service__pb2.OrderResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetBestAsk(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrderBookService/GetBestAsk',
+            my__service__pb2.Empty.SerializeToString,
+            my__service__pb2.OrderResponse.FromString,
             options,
             channel_credentials,
             insecure,

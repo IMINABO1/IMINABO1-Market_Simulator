@@ -1,5 +1,6 @@
 .vscode/
 __pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 *.exe
@@ -14,7 +15,10 @@ __pycache__/
 *.dll
 *.cache
 *.db
-*.DS_Store
+.DS_Store
 .env
 backend_py/venv/
 backend/build/
+backend_py/build/
+backend_py/order_book/
+backend_py/Release/

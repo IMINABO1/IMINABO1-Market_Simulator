@@ -24,17 +24,19 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10my_service.proto\"\x1c\n\nBidRequest\x12\x0e\n\x06symbol\x18\x01 \x01(\t\".\n\x0b\x42idResponse\x12\r\n\x05price\x18\x01 \x01(\x01\x12\x10\n\x08quantity\x18\x02 \x01(\x05\x32\x34\n\tOrderBook\x12\'\n\nGetBestBid\x12\x0b.BidRequest\x1a\x0c.BidResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10my_service.proto\"v\n\x0cOrderRequest\x12\x10\n\x08order_id\x18\x01 \x01(\x05\x12\r\n\x05price\x18\x02 \x01(\x01\x12\x10\n\x08quantity\x18\x03 \x01(\r\x12\x0c\n\x04side\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\x12\x12\n\norder_type\x18\x06 \x01(\t\"w\n\rOrderResponse\x12\x10\n\x08order_id\x18\x01 \x01(\x05\x12\r\n\x05price\x18\x02 \x01(\x01\x12\x10\n\x08quantity\x18\x03 \x01(\r\x12\x0c\n\x04side\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\x12\x12\n\norder_type\x18\x06 \x01(\t\"\x07\n\x05\x45mpty2\x89\x01\n\x10OrderBookService\x12)\n\x08\x41\x64\x64Order\x12\r.OrderRequest\x1a\x0e.OrderResponse\x12$\n\nGetBestBid\x12\x06.Empty\x1a\x0e.OrderResponse\x12$\n\nGetBestAsk\x12\x06.Empty\x1a\x0e.OrderResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'my_service_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_BIDREQUEST']._serialized_start=20
-  _globals['_BIDREQUEST']._serialized_end=48
-  _globals['_BIDRESPONSE']._serialized_start=50
-  _globals['_BIDRESPONSE']._serialized_end=96
-  _globals['_ORDERBOOK']._serialized_start=98
-  _globals['_ORDERBOOK']._serialized_end=150
+  _globals['_ORDERREQUEST']._serialized_start=20
+  _globals['_ORDERREQUEST']._serialized_end=138
+  _globals['_ORDERRESPONSE']._serialized_start=140
+  _globals['_ORDERRESPONSE']._serialized_end=259
+  _globals['_EMPTY']._serialized_start=261
+  _globals['_EMPTY']._serialized_end=268
+  _globals['_ORDERBOOKSERVICE']._serialized_start=271
+  _globals['_ORDERBOOKSERVICE']._serialized_end=408
 # @@protoc_insertion_point(module_scope)

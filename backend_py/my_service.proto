@@ -1,14 +1,27 @@
 syntax = "proto3";
 
-message BidRequest {
-  string symbol = 1;
+service OrderBookService {
+  rpc AddOrder (OrderRequest) returns (OrderResponse);
+  rpc GetBestBid (Empty) returns (OrderResponse);
+  rpc GetBestAsk (Empty) returns (OrderResponse);
 }
 
-message BidResponse {
-  double price = 1;
-  int32 quantity = 2;
+message OrderRequest {
+  int32 order_id = 1;
+  double price = 2;
+  uint32 quantity = 3;
+  bool side = 4; // true=buy, false=sell
+  int64 timestamp = 5;
+  string order_type = 6; // "LIMIT" or "MARKET"
 }
 
-service OrderBook {
-  rpc GetBestBid(BidRequest) returns (BidResponse);
+message OrderResponse {
+  int32 order_id = 1;
+  double price = 2;
+  uint32 quantity = 3;
+  bool side = 4;
+  int64 timestamp = 5;
+  string order_type = 6;
 }
+
+message Empty {}
