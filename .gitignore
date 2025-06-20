@@ -1,11 +1,31 @@
 *.pyc
 *.exe
-backend_py/__pycache__/
-
-backend_py/venv/
-backend_py/venv/
+*.pyo
+*.o
+*.a
+*.so
+*.log
+*.sln
+*.vcxproj*
+*.user
+*.obj
+*.dll
+*.cache
+*.db
 .env/
+
+
+#Python specific
+backend_py/__pycache__/
+backend_py/venv/
+
+#C++ specific
 backend/order_book.exe
 order_book.exe
-.vscode/
 backend/output.txt
+backend/build/
+backend/a.cpp
+backend/a_o.txt
+
+#VS Code specific
+.vscode/
