@@ -82,10 +82,10 @@ public:
     // compare two orders
     bool operator==(const Order& other) const {
         return (order_id == other.order_id) &&
-                (price == other.price) &&
-                (quantity == other.quantity) &&
-                (side == other.side) &&
-                (timestamp == other.timestamp);
+               (price == other.price) &&
+               (quantity == other.quantity) &&
+               (side == other.side) &&
+               (timestamp == other.timestamp);
     }
     
     // getters
@@ -140,7 +140,7 @@ private:
 // Custom comparator for buy orders (higher price first, then time priority)
 struct BuyOrderComparator {
     bool operator()(const std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>& a,
-                   const std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>& b) const {
+                    const std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>& b) const {
         // Market orders have priority over limit orders
         if (a.first.get_order_type() != b.first.get_order_type()) {
             return a.first.get_order_type() == OrderType::LIMIT && b.first.get_order_type() == OrderType::MARKET;
@@ -159,7 +159,7 @@ struct BuyOrderComparator {
 // Custom comparator for sell orders (lower price first, then time priority)
 struct SellOrderComparator {
     bool operator()(const std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>& a,
-                   const std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>& b) const {
+                    const std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>& b) const {
         // Market orders have priority over limit orders
         if (a.first.get_order_type() != b.first.get_order_type()) {
             return a.first.get_order_type() == OrderType::LIMIT && b.first.get_order_type() == OrderType::MARKET;
@@ -179,12 +179,12 @@ class OrderBook {
 private:
     // Using priority queues for better performance
     std::priority_queue<std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>, 
-                       std::vector<std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>>, 
-                       BuyOrderComparator> buy_orders;
+                        std::vector<std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>>, 
+                        BuyOrderComparator> buy_orders;
     
     std::priority_queue<std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>, 
-                       std::vector<std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>>, 
-                       SellOrderComparator> sell_orders;
+                        std::vector<std::pair<Order, std::chrono::time_point<std::chrono::steady_clock>>>, 
+                        SellOrderComparator> sell_orders;
     
     std::unordered_map<int, std::shared_ptr<Order>> order_lookup;
     std::vector<Trade> trade_log;
@@ -198,6 +198,13 @@ private:
             // Match against sell orders
             while (working_order.get_qty() > 0 && !sell_orders.empty()) {
                 auto best_sell_pair = sell_orders.top();
+                
+                // ADDED: Check if the order is cancelled (removed from lookup)
+                if (order_lookup.find(best_sell_pair.first.get_order_id()) == order_lookup.end()) {
+                    sell_orders.pop();
+                    continue; // Skip cancelled order
+                }
+                
                 Order best_sell = best_sell_pair.first;
                 
                 // Check if expired
@@ -218,7 +225,7 @@ private:
                 double trade_price = best_sell.get_price(); // Use the resting order's price
                 
                 Trade trade(working_order.get_order_id(), best_sell.get_order_id(), 
-                           trade_price, trade_qty);
+                            trade_price, trade_qty);
                 trades.push_back(trade);
                 
                 // Update quantities
@@ -243,6 +250,13 @@ private:
             // Match against buy orders
             while (working_order.get_qty() > 0 && !buy_orders.empty()) {
                 auto best_buy_pair = buy_orders.top();
+
+                // ADDED: Check if the order is cancelled (removed from lookup)
+                if (order_lookup.find(best_buy_pair.first.get_order_id()) == order_lookup.end()) {
+                    buy_orders.pop();
+                    continue; // Skip cancelled order
+                }
+                
                 Order best_buy = best_buy_pair.first;
                 
                 // Check if expired
@@ -263,7 +277,7 @@ private:
                 double trade_price = best_buy.get_price(); // Use the resting order's price
                 
                 Trade trade(best_buy.get_order_id(), working_order.get_order_id(), 
-                           trade_price, trade_qty);
+                            trade_price, trade_qty);
                 trades.push_back(trade);
                 
                 // Update quantities
@@ -446,21 +460,23 @@ public:
 
     // Enhanced update_order method
     void update_order(int order_id, std::optional<double> new_price, 
-                     std::optional<unsigned int> new_qty, std::optional<bool> new_side) {
+                      std::optional<unsigned int> new_qty, std::optional<bool> new_side) {
+        // Find the original order in the lookup map.
         auto it = order_lookup.find(order_id);
         if (it == order_lookup.end()) {
             std::cout << "Order not found\n";
             return;
         }
 
-        auto order_ptr = it->second;
-        
-        // Remove the old order first
+        // Create a copy of the order to modify.
+        Order updated_order = *it->second;
+
+        // "Cancel" the old order by removing it from the lookup.
+        // The old order object remains in the priority queue but will be ignored
+        // during matching because it's no longer in the lookup map.
         remove_order(order_id);
         
-        // Create updated order
-        Order updated_order = *order_ptr;
-        
+        // Apply the requested updates to our copy.
         if (new_price.has_value()) {
             updated_order.set_price(new_price.value());
         }
@@ -473,7 +489,8 @@ public:
             updated_order.set_side(new_side.value());
         }
         
-        // Re-add the updated order
+        // Add the modified order back to the book. The add_order function
+        // will handle matching and placing it in the correct priority queue.
         add_order(updated_order);
     }
     
@@ -516,7 +533,7 @@ int main() {
     
     // Create order with expiry (expires in 5 seconds)
     Order expiring_order(4, 99.0, 3, true, std::time(nullptr), OrderType::LIMIT, 
-                        std::chrono::seconds(5));
+                         std::chrono::seconds(5));
     
     std::cout << "Adding limit orders...\n";
     book.add_order(limit_buy);
@@ -552,7 +569,7 @@ int main() {
 
     // Test update_order (change price and side of order 1)
     std::cout << "\nTesting update_order (change price and side of order 1):\n";
-    book.update_order(1, 105.0, std::nullopt, false);
+    book.update_order(1, 105.0, std::nullopt, false); // Change side from buy to sell
     book.repr();
 
     // Test clean_expired_orders
@@ -565,14 +582,14 @@ int main() {
         std::cout << "\nBest Bid:\n";
         best_bid.repr();
     } catch (const std::exception& e) {
-        std::cout << "No best bid: " << e.what() << std::endl;
+        std::cout << "\nNo best bid: " << e.what() << std::endl;
     }
     try {
         auto best_ask = book.get_best_ask();
         std::cout << "\nBest Ask:\n";
         best_ask.repr();
     } catch (const std::exception& e) {
-        std::cout << "No best ask: " << e.what() << std::endl;
+        std::cout << "\nNo best ask: " << e.what() << std::endl;
     }
 
     // Test repr(bool side)

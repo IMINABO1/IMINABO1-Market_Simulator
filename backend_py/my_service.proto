@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message BidRequest {
+  string symbol = 1;
+}
+
+message BidResponse {
+  double price = 1;
+  int32 quantity = 2;
+}
+
+service OrderBook {
+  rpc GetBestBid(BidRequest) returns (BidResponse);
+}

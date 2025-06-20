@@ -1,4 +1,12 @@
+*.pyc
+*.exe
+backend_py/__pycache__/
+.env/
 backend/order_book.exe
 order_book.exe
 .vscode/
 backend/output.txt
+backend/a.cpp
+backend/a.exe
+backend/a_o.txt
+backend_py/venv/
