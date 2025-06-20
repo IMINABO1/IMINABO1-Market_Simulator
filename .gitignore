@@ -5,6 +5,8 @@
 __pycache__/
 **/__pycache__/
 *.cache
+backend_py/__pycache__/
+backend_py\__pycache__/
 
 # Compiled binaries and build artifacts
 *.exe
