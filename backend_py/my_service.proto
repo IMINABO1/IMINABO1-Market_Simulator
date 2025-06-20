@@ -1,26 +1,26 @@
 syntax = "proto3";
 
 service OrderBookService {
-  rpc AddOrder (OrderRequest) returns (OrderResponse);
-  rpc GetBestBid (Empty) returns (OrderResponse);
-  rpc GetBestAsk (Empty) returns (OrderResponse);
+  rpc AddOrder    ( OrderRequest ) returns ( OrderResponse );
+  rpc GetBestBid  ( Empty        ) returns ( OrderResponse );
+  rpc GetBestAsk  ( Empty        ) returns ( OrderResponse );
 }
 
 message OrderRequest {
-  int32 order_id = 1;
-  double price = 2;
-  uint32 quantity = 3;
-  bool side = 4; // true=buy, false=sell
-  int64 timestamp = 5;
-  string order_type = 6; // "LIMIT" or "MARKET"
+  int32  order_id   = 1;
+  double price      = 2;
+  uint32 quantity   = 3;
+  bool   side       = 4;  // true=buy, false=sell
+  int64  timestamp  = 5;
+  string order_type = 6;  // "LIMIT" or "MARKET"
 }
 
 message OrderResponse {
-  int32 order_id = 1;
-  double price = 2;
-  uint32 quantity = 3;
-  bool side = 4;
-  int64 timestamp = 5;
+  int32  order_id   = 1;
+  double price      = 2;
+  uint32 quantity   = 3;
+  bool   side       = 4;
+  int64  timestamp  = 5;
   string order_type = 6;
 }
 
