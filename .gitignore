@@ -30,6 +30,7 @@ backend_py/venv/
 
 # C++ build artifacts
 backend/build/
+backend\build\
 backend/order_book.exe
 order_book.exe
 backend/output.txt
@@ -38,5 +39,6 @@ backend/a_o.txt
 
 # Python build artifacts
 backend_py/build/
+backend_py\build\
 backend_py/order_book/
 backend_py/Release/

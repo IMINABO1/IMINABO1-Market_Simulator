@@ -39,7 +39,7 @@ def main():
         except Exception as e:
             print("No best ask:", e)
 
-        time.sleep(random.uniform(0.1,4))
+        time.sleep(random.uniform(0.1,0.5))
 
 if __name__ == '__main__':
     main()
