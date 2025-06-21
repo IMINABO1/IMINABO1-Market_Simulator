@@ -11,6 +11,7 @@ import orderbook_cpp  # your pybind11 C++ extension
 class OrderBookService(my_service_pb2_grpc.OrderBookServiceServicer):
     def __init__(self):
         self.book = orderbook_cpp.OrderBook()
+        self.kafka_producer = Producer({"bootstrap.servers":"localhost:9092"})
 
     def AddOrder(self, req, ctx):
         # turn the protobuf into your C++ Order
@@ -23,7 +24,23 @@ class OrderBookService(my_service_pb2_grpc.OrderBookServiceServicer):
             getattr(orderbook_cpp.OrderType, req.order_type)
         )
         # call into C++
-        _ = self.book.add_order(o)
+        trades = self.book.add_order(o)
+
+        for t in trades:
+            ts = int(t.timestamp.total_seconds())
+            msg = {
+              "buy_order_id":  t.buy_order_id,
+              "sell_order_id": t.sell_order_id,
+              "price":         t.price,
+              "quantity":      t.quantity,
+              "timestamp":     ts
+            }
+            self.kafka_producer.produce(
+               "order-updates",
+               key=str(t.buy_order_id),
+               value=json.dumps(msg)
+            )
+        self.kafka_producer.flush()
 
         # echo the request back as the response
         return my_service_pb2.OrderResponse(
@@ -37,6 +54,18 @@ class OrderBookService(my_service_pb2_grpc.OrderBookServiceServicer):
 
     def GetBestBid(self, req, ctx):
         best = self.book.get_best_bid()
+
+        self.kafka_producer.produce(
+            "best-bid-updates",
+            key="best_bid",
+            value=json.dumps({
+                "price": best.get_price(),
+                "quantity": best.get_qty(),
+                "timestamp": best.get_timestamp()
+            })
+            )
+        self.kafka_producer.flush()
+
         return my_service_pb2.OrderResponse(
             order_id   = best.get_order_id(),
             price      = best.get_price(),
@@ -48,6 +77,18 @@ class OrderBookService(my_service_pb2_grpc.OrderBookServiceServicer):
 
     def GetBestAsk(self, req, ctx):
         best = self.book.get_best_ask()
+
+        self.kafka_producer.produce(
+            "best-ask-updates",
+            key="best_ask",
+            value=json.dumps({
+                "price": best.get_price(),
+                "quantity": best.get_qty(),
+                "timestamp": best.get_timestamp()
+            })
+            )
+        self.kafka_producer.flush()
+
         return my_service_pb2.OrderResponse(
             order_id   = best.get_order_id(),
             price      = best.get_price(),

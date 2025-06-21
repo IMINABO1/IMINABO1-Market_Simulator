@@ -76,5 +76,9 @@ def run():
     best_ask = stub.GetBestAsk(my_service_pb2.Empty())
     print("GetBestAsk →", best_ask)
 
+    stub.GetBestBid(my_service_pb2.Empty())
+    stub.GetBestAsk(my_service_pb2.Empty())
+
+
 if __name__ == "__main__":
     run()

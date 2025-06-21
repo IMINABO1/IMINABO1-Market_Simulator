@@ -24,16 +24,19 @@ while True:
     if msg.error():
         print("Consumer error:", msg.error())
         continue
-    order = json.loads(msg.value())
+    raw_order = json.loads(msg.value())
+    print(raw_order)
     # Build gRPC request
+    
     request = my_service_pb2.OrderRequest(
-        order_id=order['order_id'],
-        price=order['price'],
-        quantity=order['quantity'],
-        side=order['side'],
-        timestamp=order['timestamp'],
-        order_type=order.get('order_type', 'LIMIT')
+        order_id=raw_order['order_id'],
+        price=raw_order['price'],
+        quantity=raw_order['quantity'],
+        side=raw_order['side'],
+        timestamp=raw_order['timestamp'],
+        order_type=raw_order.get('order_type', 'LIMIT')
     )
+    
     # Call gRPC AddOrder
     response = stub.AddOrder(request)
     print("Order added via gRPC:", response)
