@@ -1,3 +1,14 @@
+#kafka_consumer.py
+'''
+!!!!! ARCHAIC !!!!!
+Script is not necessary cuz  the project is using a gRCP-centric approach and not a
+Kafka-centric approach
+if you run it with the dynamic client and server it will run and keep waiting for
+messages but will receive none
+no orders are sent to  order-requests topics cuz order-updates woould have consumed
+them
+but i will keep this file in case it may be needed
+'''
 import json
 from confluent_kafka import Consumer
 import grpc
@@ -7,7 +18,7 @@ import my_service_pb2_grpc
 # Set up Kafka consumer
 c = Consumer({
     'bootstrap.servers': 'localhost:9092',
-    'group.id': 'orderbook-updater',
+    'group.id': 'kafka-consumer',
     'auto.offset.reset': 'earliest'
 })
 c.subscribe(['order-requests'])

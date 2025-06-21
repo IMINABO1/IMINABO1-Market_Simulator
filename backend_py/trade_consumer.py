@@ -1,3 +1,4 @@
+#trade_consumer
 from confluent_kafka import Consumer
 import json
 
@@ -6,7 +7,7 @@ c = Consumer({
     'group.id': 'trade-listener',
     'auto.offset.reset': 'earliest'
 })
-c.subscribe(['order-updates'])  # or ['best-bid-updates','best-ask-updates']
+c.subscribe(['order-updates'])
 
 print("Listening for trades…")
 while True:
