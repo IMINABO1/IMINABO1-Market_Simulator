@@ -49,6 +49,11 @@ class OrderBookServiceStub(object):
                 request_serializer=my__service__pb2.Empty.SerializeToString,
                 response_deserializer=my__service__pb2.OrderResponse.FromString,
                 _registered_method=True)
+        self.GetOrderBook = channel.unary_unary(
+                '/OrderBookService/GetOrderBook',
+                request_serializer=my__service__pb2.Empty.SerializeToString,
+                response_deserializer=my__service__pb2.OrderBookResponse.FromString,
+                _registered_method=True)
 
 
 class OrderBookServiceServicer(object):
@@ -72,6 +77,12 @@ class OrderBookServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetOrderBook(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_OrderBookServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -89,6 +100,11 @@ def add_OrderBookServiceServicer_to_server(servicer, server):
                     servicer.GetBestAsk,
                     request_deserializer=my__service__pb2.Empty.FromString,
                     response_serializer=my__service__pb2.OrderResponse.SerializeToString,
+            ),
+            'GetOrderBook': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetOrderBook,
+                    request_deserializer=my__service__pb2.Empty.FromString,
+                    response_serializer=my__service__pb2.OrderBookResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -172,6 +188,33 @@ class OrderBookService(object):
             '/OrderBookService/GetBestAsk',
             my__service__pb2.Empty.SerializeToString,
             my__service__pb2.OrderResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetOrderBook(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrderBookService/GetOrderBook',
+            my__service__pb2.Empty.SerializeToString,
+            my__service__pb2.OrderBookResponse.FromString,
             options,
             channel_credentials,
             insecure,

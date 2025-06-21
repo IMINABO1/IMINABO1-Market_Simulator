@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10my_service.proto\"v\n\x0cOrderRequest\x12\x10\n\x08order_id\x18\x01 \x01(\x05\x12\r\n\x05price\x18\x02 \x01(\x01\x12\x10\n\x08quantity\x18\x03 \x01(\r\x12\x0c\n\x04side\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\x12\x12\n\norder_type\x18\x06 \x01(\t\"w\n\rOrderResponse\x12\x10\n\x08order_id\x18\x01 \x01(\x05\x12\r\n\x05price\x18\x02 \x01(\x01\x12\x10\n\x08quantity\x18\x03 \x01(\r\x12\x0c\n\x04side\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\x12\x12\n\norder_type\x18\x06 \x01(\t\"\x07\n\x05\x45mpty2\x89\x01\n\x10OrderBookService\x12)\n\x08\x41\x64\x64Order\x12\r.OrderRequest\x1a\x0e.OrderResponse\x12$\n\nGetBestBid\x12\x06.Empty\x1a\x0e.OrderResponse\x12$\n\nGetBestAsk\x12\x06.Empty\x1a\x0e.OrderResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10my_service.proto\"v\n\x0cOrderRequest\x12\x10\n\x08order_id\x18\x01 \x01(\x05\x12\r\n\x05price\x18\x02 \x01(\x01\x12\x10\n\x08quantity\x18\x03 \x01(\r\x12\x0c\n\x04side\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\x12\x12\n\norder_type\x18\x06 \x01(\t\"w\n\rOrderResponse\x12\x10\n\x08order_id\x18\x01 \x01(\x05\x12\r\n\x05price\x18\x02 \x01(\x01\x12\x10\n\x08quantity\x18\x03 \x01(\r\x12\x0c\n\x04side\x18\x04 \x01(\x08\x12\x11\n\ttimestamp\x18\x05 \x01(\x03\x12\x12\n\norder_type\x18\x06 \x01(\t\"\x07\n\x05\x45mpty\"1\n\x0eOrderBookLevel\x12\r\n\x05price\x18\x01 \x01(\x01\x12\x10\n\x08quantity\x18\x02 \x01(\r\"Q\n\x11OrderBookResponse\x12\x1d\n\x04\x62ids\x18\x01 \x03(\x0b\x32\x0f.OrderBookLevel\x12\x1d\n\x04\x61sks\x18\x02 \x03(\x0b\x32\x0f.OrderBookLevel2\xb5\x01\n\x10OrderBookService\x12)\n\x08\x41\x64\x64Order\x12\r.OrderRequest\x1a\x0e.OrderResponse\x12$\n\nGetBestBid\x12\x06.Empty\x1a\x0e.OrderResponse\x12$\n\nGetBestAsk\x12\x06.Empty\x1a\x0e.OrderResponse\x12*\n\x0cGetOrderBook\x12\x06.Empty\x1a\x12.OrderBookResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -37,6 +37,10 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_ORDERRESPONSE']._serialized_end=259
   _globals['_EMPTY']._serialized_start=261
   _globals['_EMPTY']._serialized_end=268
-  _globals['_ORDERBOOKSERVICE']._serialized_start=271
-  _globals['_ORDERBOOKSERVICE']._serialized_end=408
+  _globals['_ORDERBOOKLEVEL']._serialized_start=270
+  _globals['_ORDERBOOKLEVEL']._serialized_end=319
+  _globals['_ORDERBOOKRESPONSE']._serialized_start=321
+  _globals['_ORDERBOOKRESPONSE']._serialized_end=402
+  _globals['_ORDERBOOKSERVICE']._serialized_start=405
+  _globals['_ORDERBOOKSERVICE']._serialized_end=586
 # @@protoc_insertion_point(module_scope)

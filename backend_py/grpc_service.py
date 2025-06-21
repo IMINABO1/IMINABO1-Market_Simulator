@@ -11,6 +11,8 @@ import orderbook_cpp  # your pybind11 C++ extension
 
 class OrderBookService(my_service_pb2_grpc.OrderBookServiceServicer):
     def __init__(self):
+        self.bids = []
+        self.asks = []
         self.book = orderbook_cpp.OrderBook()
         self.kafka_producer = Producer({"bootstrap.servers":"localhost:9092"})
 
@@ -26,6 +28,13 @@ class OrderBookService(my_service_pb2_grpc.OrderBookServiceServicer):
         )
         # call into C++
         trades = self.book.add_order(o)
+
+        # Track in Python for visualization
+        order_level = {"price": req.price, "quantity": req.quantity}
+        if req.side:
+            self.bids.append(order_level)
+        else:
+            self.asks.append(order_level)
 
         for t in trades:
             ts = int(t.timestamp.total_seconds())
@@ -97,6 +106,13 @@ class OrderBookService(my_service_pb2_grpc.OrderBookServiceServicer):
             side       = best.get_side(),
             timestamp  = best.get_timestamp(),
             order_type = best.get_order_type().name
+        )
+
+    def GetOrderBook(self, req, ctx):
+        # Return Python-tracked bids and asks
+        return my_service_pb2.OrderBookResponse(
+            bids=[my_service_pb2.OrderBookLevel(**b) for b in self.bids],
+            asks=[my_service_pb2.OrderBookLevel(**a) for a in self.asks]
         )
 
 def serve():

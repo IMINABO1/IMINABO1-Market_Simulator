@@ -4,6 +4,7 @@ service OrderBookService {
   rpc AddOrder    ( OrderRequest ) returns ( OrderResponse );
   rpc GetBestBid  ( Empty        ) returns ( OrderResponse );
   rpc GetBestAsk  ( Empty        ) returns ( OrderResponse );
+  rpc GetOrderBook( Empty        ) returns ( OrderBookResponse );
 }
 
 message OrderRequest {
@@ -25,3 +26,13 @@ message OrderResponse {
 }
 
 message Empty {}
+
+message OrderBookLevel {
+    double price = 1;
+    uint32 quantity = 2;
+}
+
+message OrderBookResponse {
+    repeated OrderBookLevel bids = 1;
+    repeated OrderBookLevel asks = 2;
+}

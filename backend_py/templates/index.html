@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Book UI</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Order Book UI</h1>
+    {% if message %}
+        <p style="color:green;">{{ message }}</p>
+    {% endif %}
+    <form action="/add_order" method="post">
+        <label>Price: <input type="number" step="0.01" name="price" required></label><br>
+        <label>Quantity: <input type="number" name="quantity" required></label><br>
+        <label>Side:
+            <select name="side">
+                <option value="buy">Buy</option>
+                <option value="sell">Sell</option>
+            </select>
+        </label><br>
+        <label>Order Type:
+            <select name="order_type">
+                <option value="LIMIT">LIMIT</option>
+                <option value="MARKET">MARKET</option>
+            </select>
+        </label><br>
+        <button type="submit">Add Order</button>
+    </form>
+    <hr>
+    <form action="/best_prices" method="get">
+        <button type="submit">Show Best Prices</button>
+    </form>
+    <h2>Best Bid</h2>
+    <pre id="bestBid">Loading...</pre>
+    <h2>Best Ask</h2>
+    <pre id="bestAsk">Loading...</pre>
+    <hr>
+    <h2>Order Book Chart</h2>
+    <canvas id="orderChart" width="400" height="200"></canvas>
+    <script>
+    const ctx = document.getElementById('orderChart').getContext('2d');
+    const chartData = {{ chart_data | safe }};
+    const orderChart = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: { responsive: true }
+    });
+    </script>
+    <hr>
+    <h2>Performance</h2>
+    <table border="1">
+        <tr><th>Order ID</th><th>Price</th><th>Qty</th><th>Side</th><th>Who</th></tr>
+        {% for order in recent_orders %}
+        <tr>
+            <td>{{ order.order_id }}</td>
+            <td>{{ order.price }}</td>
+            <td>{{ order.quantity }}</td>
+            <td>{{ "Buy" if order.side else "Sell" }}</td>
+            <td>{{ order.who }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <!-- Depth Chart -->
+    <canvas id="depthChart" width="600" height="300"></canvas>
+
+    <!-- Time & Sales -->
+    <h2>Recent Trades</h2>
+    <table id="tape">
+      <thead><tr><th>Time</th><th>Price</th><th>Qty</th><th>Side</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <canvas id="performanceChart" width="400" height="200"></canvas>
+
+    <script>
+    async function fetchOrderBook() {
+        const res = await fetch('/orderbook');
+        return await res.json();
+    }
+    async function fetchTrades() {
+        const res = await fetch('/trades');
+        return await res.json();
+    }
+    function updateDepthChart(data) {
+        // Use Chart.js to update the chart with bid/ask arrays
+    }
+    function updateTape(trades) {
+        // Fill the table with recent trades, color rows by side
+    }
+    async function refresh() {
+        const ob = await fetchOrderBook();
+        const trades = await fetchTrades();
+        updateDepthChart(ob);
+        updateTape(trades);
+    }
+    setInterval(refresh, 1000);
+    </script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
