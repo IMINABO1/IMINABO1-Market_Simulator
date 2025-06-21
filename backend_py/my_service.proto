@@ -5,6 +5,7 @@ service OrderBookService {
   rpc GetBestBid  ( Empty        ) returns ( OrderResponse );
   rpc GetBestAsk  ( Empty        ) returns ( OrderResponse );
   rpc GetOrderBook( Empty        ) returns ( OrderBookResponse );
+  rpc GetTradeLog ( Empty        ) returns ( stream Trade );
 }
 
 message OrderRequest {
@@ -35,4 +36,11 @@ message OrderBookLevel {
 message OrderBookResponse {
     repeated OrderBookLevel bids = 1;
     repeated OrderBookLevel asks = 2;
+}
+
+message Trade {
+    int64 timestamp = 1;
+    double price = 2;
+    uint32 quantity = 3;
+    bool side = 4;
 }

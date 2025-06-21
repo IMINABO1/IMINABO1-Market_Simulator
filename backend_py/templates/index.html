@@ -1,99 +1,571 @@
+<!-- TODO: Make Order Depth Chart less clunky -->
+ <!-- TODO: Add zoom and scroll feature to graphs -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Order Book UI</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Book Trading Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'trade-green': '#00d4aa',
+                        'trade-red': '#ff6b6b',
+                        'dark-bg': '#0f1419',
+                        'card-bg': '#1a1f2e',
+                        'border-color': '#2d3748'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .glass-card {
+            background: rgba(26, 31, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(45, 55, 72, 0.3);
+        }
+        .glow-green {
+            box-shadow: 0 0 20px rgba(0, 212, 170, 0.3);
+        }
+        .glow-red {
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+        }
+        .pulse-animation {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4aa 0%, #00b894 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 212, 170, 0.4);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
+        }
+        .scrollbar-thin {
+            scrollbar-width: thin;
+            scrollbar-color: #4a5568 #2d3748;
+        }
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #2d3748;
+            border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+    </style>
 </head>
-<body>
-    <h1>Order Book UI</h1>
-    {% if message %}
-        <p style="color:green;">{{ message }}</p>
-    {% endif %}
-    <form action="/add_order" method="post">
-        <label>Price: <input type="number" step="0.01" name="price" required></label><br>
-        <label>Quantity: <input type="number" name="quantity" required></label><br>
-        <label>Side:
-            <select name="side">
-                <option value="buy">Buy</option>
-                <option value="sell">Sell</option>
-            </select>
-        </label><br>
-        <label>Order Type:
-            <select name="order_type">
-                <option value="LIMIT">LIMIT</option>
-                <option value="MARKET">MARKET</option>
-            </select>
-        </label><br>
-        <button type="submit">Add Order</button>
-    </form>
-    <hr>
-    <form action="/best_prices" method="get">
-        <button type="submit">Show Best Prices</button>
-    </form>
-    <h2>Best Bid</h2>
-    <pre id="bestBid">Loading...</pre>
-    <h2>Best Ask</h2>
-    <pre id="bestAsk">Loading...</pre>
-    <hr>
-    <h2>Order Book Chart</h2>
-    <canvas id="orderChart" width="400" height="200"></canvas>
-    <script>
-    const ctx = document.getElementById('orderChart').getContext('2d');
-    const chartData = {{ chart_data | safe }};
-    const orderChart = new Chart(ctx, {
-        type: 'line',
-        data: chartData,
-        options: { responsive: true }
-    });
-    </script>
-    <hr>
-    <h2>Performance</h2>
-    <table border="1">
-        <tr><th>Order ID</th><th>Price</th><th>Qty</th><th>Side</th><th>Who</th></tr>
-        {% for order in recent_orders %}
-        <tr>
-            <td>{{ order.order_id }}</td>
-            <td>{{ order.price }}</td>
-            <td>{{ order.quantity }}</td>
-            <td>{{ "Buy" if order.side else "Sell" }}</td>
-            <td>{{ order.who }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <!-- Depth Chart -->
-    <canvas id="depthChart" width="600" height="300"></canvas>
+<body class="min-h-screen text-white">
+    <!-- Header -->
+    <header class="glass-card rounded-none border-b border-border-color">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-trade-green to-blue-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-trade-green to-blue-500 bg-clip-text text-transparent">
+                            Iminabo Trading Dashboard
+                        </h1>
+                        <p class="text-gray-400 text-sm">Real-time Order Book</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-trade-green rounded-full pulse-animation"></div>
+                        <span class="text-sm text-gray-300">Live</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-400">Last Update</div>
+                        <div class="text-sm font-mono" id="lastUpdate">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
 
-    <!-- Time & Sales -->
-    <h2>Recent Trades</h2>
-    <table id="tape">
-      <thead><tr><th>Time</th><th>Price</th><th>Qty</th><th>Side</th></tr></thead>
-      <tbody></tbody>
-    </table>
-    <canvas id="performanceChart" width="400" height="200"></canvas>
+    <div class="container mx-auto px-6 py-8">
+        <!-- Order Form -->
+        <div class="mb-8">
+            <div class="glass-card rounded-xl p-6 slide-in">
+                <h2 class="text-xl font-semibold mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-trade-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Place Order
+                </h2>
+                <form action="/add_order" method="post" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-300">Price</label>
+                        <input type="number" step="0.01" name="price" required 
+                               class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-trade-green focus:border-transparent transition-all duration-200 text-white placeholder-gray-400"
+                               placeholder="0.00">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-300">Quantity</label>
+                        <input type="number" name="quantity" required 
+                               class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-trade-green focus:border-transparent transition-all duration-200 text-white placeholder-gray-400"
+                               placeholder="0">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-300">Side</label>
+                        <select name="side" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-trade-green focus:border-transparent transition-all duration-200 text-white">
+                            <option value="buy" class="bg-gray-800">Buy</option>
+                            <option value="sell" class="bg-gray-800">Sell</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-300">Order Type</label>
+                        <select name="order_type" class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-trade-green focus:border-transparent transition-all duration-200 text-white">
+                            <option value="LIMIT" class="bg-gray-800">Limit</option>
+                            <option value="MARKET" class="bg-gray-800">Market</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full px-6 py-3 btn-primary text-white font-semibold rounded-lg">
+                            Place Order
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Best Bid/Ask -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="glass-card rounded-xl p-6 glow-green slide-in">
+                <h3 class="text-lg font-semibold mb-4 text-trade-green flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    Best Bid
+                </h3>
+                <div class="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto scrollbar-thin">
+                    <pre id="bestBid" class="text-trade-green whitespace-pre-wrap">Loading...</pre>
+                </div>
+            </div>
+            <div class="glass-card rounded-xl p-6 glow-red slide-in">
+                <h3 class="text-lg font-semibold mb-4 text-trade-red flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    Best Ask
+                </h3>
+                <div class="bg-gray-800 rounded-lg p-4 font-mono text-sm overflow-x-auto scrollbar-thin">
+                    <pre id="bestAsk" class="text-trade-red whitespace-pre-wrap">Loading...</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+            <!-- Depth Chart -->
+            <div class="glass-card rounded-xl p-6 slide-in">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Order Book Depth
+                </h3>
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <canvas id="depthChart" class="w-full h-64"></canvas>
+                </div>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="glass-card rounded-xl p-6 slide-in">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                    Price Performance
+                </h3>
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <canvas id="performanceChart" class="w-full h-64"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Trades -->
+        <div class="glass-card rounded-xl p-6 slide-in">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                </svg>
+                Recent Trades
+            </h3>
+            <div class="bg-gray-800 rounded-lg overflow-hidden">
+                <div class="overflow-x-auto scrollbar-thin">
+                    <table id="tape" class="w-full">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Price</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Quantity</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Side</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700">
+                            <!-- Trade rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 glass-card rounded-lg p-4 text-white transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center space-x-3">
+            <div class="flex-shrink-0">
+                <svg class="w-5 h-5 text-trade-green" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm font-medium" id="toastMessage">Order placed successfully!</p>
+            </div>
+        </div>
+    </div>
 
     <script>
-    async function fetchOrderBook() {
-        const res = await fetch('/orderbook');
-        return await res.json();
-    }
-    async function fetchTrades() {
-        const res = await fetch('/trades');
-        return await res.json();
-    }
-    function updateDepthChart(data) {
-        // Use Chart.js to update the chart with bid/ask arrays
-    }
-    function updateTape(trades) {
-        // Fill the table with recent trades, color rows by side
-    }
-    async function refresh() {
-        const ob = await fetchOrderBook();
-        const trades = await fetchTrades();
-        updateDepthChart(ob);
-        updateTape(trades);
-    }
-    setInterval(refresh, 1000);
+        let priceHistory = [];
+        const MAX_HISTORY = 100;
+        let depthChart = null;
+
+        // Initialize charts with dark theme
+        Chart.defaults.color = '#e2e8f0';
+        Chart.defaults.borderColor = '#4a5568';
+        Chart.defaults.backgroundColor = 'rgba(0, 212, 170, 0.1)';
+
+        // Update last update time
+        function updateLastUpdateTime() {
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            
+            toast.classList.remove('translate-x-full');
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        async function fetchBestPrices() {
+            try {
+                const res = await fetch('/best_prices_json');
+                return await res.json();
+            } catch (error) {
+                console.error('Error fetching best prices:', error);
+                return { best_bid: null, best_ask: null };
+            }
+        }
+
+        function updateBestPrices(data) {
+            document.getElementById('bestBid').textContent = data.best_bid ? JSON.stringify(data.best_bid, null, 2) : "No active bids";
+            document.getElementById('bestAsk').textContent = data.best_ask ? JSON.stringify(data.best_ask, null, 2) : "No active asks";
+            updateLastUpdateTime();
+        }
+
+        function updatePerformanceChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            if (!window.performanceChart) {
+                window.performanceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: priceHistory.map(p => p.time),
+                        datasets: [
+                            {
+                                label: 'Best Bid',
+                                data: priceHistory.map(p => p.bestBid),
+                                borderColor: '#00d4aa',
+                                backgroundColor: 'rgba(0, 212, 170, 0.1)',
+                                tension: 0.4,
+                                fill: false,
+                                pointRadius: 3,
+                                pointHoverRadius: 6,
+                            },
+                            {
+                                label: 'Best Ask',
+                                data: priceHistory.map(p => p.bestAsk),
+                                borderColor: '#ff6b6b',
+                                backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                                tension: 0.4,
+                                fill: false,
+                                pointRadius: 3,
+                                pointHoverRadius: 6,
+                            }
+                        ]
+                    },
+                    options: { 
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(75, 85, 99, 0.3)',
+                                },
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(75, 85, 99, 0.3)',
+                                },
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index',
+                        },
+                    }
+                });
+            } else {
+                window.performanceChart.data.labels = priceHistory.map(p => p.time);
+                window.performanceChart.data.datasets[0].data = priceHistory.map(p => p.bestBid);
+                window.performanceChart.data.datasets[1].data = priceHistory.map(p => p.bestAsk);
+                window.performanceChart.update('none');
+            }
+        }
+
+        function updateDepthChart(data) {
+            const bids = data.bids.sort((a, b) => b.price - a.price);
+            const asks = data.asks.sort((a, b) => a.price - b.price);
+
+            const bidPrices = bids.map(b => b.price);
+            const bidQtys = bids.map(b => b.quantity);
+            const askPrices = asks.map(a => a.price);
+            const askQtys = asks.map(a => a.quantity);
+
+            const ctx = document.getElementById('depthChart').getContext('2d');
+
+            if (!depthChart) {
+                depthChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: bidPrices.concat(askPrices),
+                        datasets: [
+                            {
+                                label: 'Bids',
+                                data: bidQtys.concat(new Array(askPrices.length).fill(null)),
+                                borderColor: '#00d4aa',
+                                backgroundColor: 'rgba(0, 212, 170, 0.2)',
+                                fill: true,
+                                tension: 0.1,
+                                pointRadius: 2,
+                            },
+                            {
+                                label: 'Asks',
+                                data: new Array(bidPrices.length).fill(null).concat(askQtys),
+                                borderColor: '#ff6b6b',
+                                backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                                fill: true,
+                                tension: 0.1,
+                                pointRadius: 2,
+                            }
+                        ]
+                    },
+                    options: { 
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(75, 85, 99, 0.3)',
+                                },
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(75, 85, 99, 0.3)',
+                                },
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index',
+                        },
+                    }
+                });
+            } else {
+                depthChart.data.labels = bidPrices.concat(askPrices);
+                depthChart.data.datasets[0].data = bidQtys.concat(new Array(askPrices.length).fill(null));
+                depthChart.data.datasets[1].data = new Array(bidPrices.length).fill(null).concat(askQtys);
+                depthChart.update('none');
+            }
+        }
+
+        function updateTape(trades) {
+            const tbody = document.querySelector('#tape tbody');
+            tbody.innerHTML = "";
+            trades.slice(0, 10).forEach(trade => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-700 transition-colors duration-150';
+                const sideColor = trade.side ? 'text-trade-green' : 'text-trade-red';
+                const sideText = trade.side ? 'BUY' : 'SELL';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-300">
+                        ${new Date(trade.timestamp * 1000).toLocaleTimeString()}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono font-semibold text-white">
+                        $${trade.price.toFixed(2)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-300">
+                        ${trade.quantity}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold ${sideColor}">
+                        ${sideText}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function refreshBestPrices() {
+            const data = await fetchBestPrices();
+            updateBestPrices(data);
+        }
+
+        async function refreshPerformanceChart() {
+            try {
+                const data = await fetchBestPrices();
+                const now = new Date().toLocaleTimeString();
+                priceHistory.push({
+                    time: now,
+                    bestBid: data.best_bid ? data.best_bid.price : null,
+                    bestAsk: data.best_ask ? data.best_ask.price : null
+                });
+                if (priceHistory.length > MAX_HISTORY) priceHistory.shift();
+                updatePerformanceChart();
+            } catch (error) {
+                console.error('Error refreshing performance chart:', error);
+            }
+        }
+
+        async function fetchOrderBook() {
+            try {
+                const res = await fetch('/orderbook');
+                return await res.json();
+            } catch (error) {
+                console.error('Error fetching order book:', error);
+                return { bids: [], asks: [] };
+            }
+        }
+
+        async function fetchTrades() {
+            try {
+                const res = await fetch('/trades');
+                return await res.json();
+            } catch (error) {
+                console.error('Error fetching trades:', error);
+                return [];
+            }
+        }
+
+        async function refreshDepthChart() {
+            const data = await fetchOrderBook();
+            updateDepthChart(data);
+        }
+
+        async function refreshTape() {
+            const trades = await fetchTrades();
+            updateTape(trades);
+        }
+
+        // Handle form submission with AJAX for better UX
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch('/add_order', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    showToast('Order placed successfully!');
+                    this.reset();
+                } else {
+                    showToast('Error placing order', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Network error', 'error');
+            });
+        });
+
+        // Initialize everything
+        function initializeApp() {
+            refreshBestPrices();
+            refreshPerformanceChart();
+            refreshDepthChart();
+            refreshTape();
+        }
+
+        // Set up intervals
+        setInterval(refreshBestPrices, 1000);
+        setInterval(refreshPerformanceChart, 5000); // Less frequent for performance
+        setInterval(refreshDepthChart, 2000);
+        setInterval(refreshTape, 1000);
+
+        // Initialize on load
+        window.addEventListener('load', initializeApp);
+
+        // Handle window resize for charts
+        window.addEventListener('resize', () => {
+            if (window.performanceChart) window.performanceChart.resize();
+            if (depthChart) depthChart.resize();
+        });
     </script>
-    <script src="/static/js/main.js"></script>
 </body>
 </html>

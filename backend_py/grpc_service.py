@@ -15,6 +15,7 @@ class OrderBookService(my_service_pb2_grpc.OrderBookServiceServicer):
         self.asks = []
         self.book = orderbook_cpp.OrderBook()
         self.kafka_producer = Producer({"bootstrap.servers":"localhost:9092"})
+        self.trades = []  # Add this line
 
     def AddOrder(self, req, ctx):
         # turn the protobuf into your C++ Order
@@ -35,6 +36,15 @@ class OrderBookService(my_service_pb2_grpc.OrderBookServiceServicer):
             self.bids.append(order_level)
         else:
             self.asks.append(order_level)
+
+        # When a trade is matched, append to self.trades:
+        trade = {
+            "timestamp": int(time.time()),
+            "price": req.price,
+            "quantity": req.quantity,
+            "side": req.side
+        }
+        self.trades.append(trade)
 
         for t in trades:
             ts = int(t.timestamp.total_seconds())
@@ -114,6 +124,15 @@ class OrderBookService(my_service_pb2_grpc.OrderBookServiceServicer):
             bids=[my_service_pb2.OrderBookLevel(**b) for b in self.bids],
             asks=[my_service_pb2.OrderBookLevel(**a) for a in self.asks]
         )
+
+    def GetTradeLog(self, req, ctx):
+        for trade in self.trades[-25:]:  # Return last 50 trades
+            yield my_service_pb2.Trade(
+                timestamp=trade["timestamp"],
+                price=trade["price"],
+                quantity=trade["quantity"],
+                side=trade["side"]
+            )
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=4))

@@ -62,6 +62,8 @@ def best_prices_json():
     try:
         best_bid = stub.GetBestBid(my_service_pb2.Empty())
         best_ask = stub.GetBestAsk(my_service_pb2.Empty())
+        print(f"Best bid: {best_bid}")
+        print(f"Best ask: {best_ask}")
         return {
             "best_bid": {
                 "order_id": best_bid.order_id,
@@ -80,7 +82,8 @@ def best_prices_json():
                 "order_type": best_ask.order_type
             } if best_ask.order_id else None
         }
-    except Exception:
+    except Exception as e:
+        print(f"Error in best_prices_json: {e}")
         return {"best_bid": None, "best_ask": None}
 
 @app.get("/orderbook")
@@ -95,17 +98,13 @@ def get_orderbook():
 
 @app.get("/trades")
 def get_trades():
-    try:
-        trades = stub.GetTradeLog(my_service_pb2.Empty())
-        # Suppose trades.trades is a list of Trade messages
-        return [
-            {
-                "timestamp": t.timestamp,
-                "price": t.price,
-                "quantity": t.quantity,
-                "side": t.side  # or whatever your Trade proto uses
-            }
-            for t in trades.trades
-        ]
-    except Exception as e:
-        return []
+    trades = stub.GetTradeLog(my_service_pb2.Empty())
+    return [
+        {
+            "timestamp": t.timestamp,
+            "price": t.price,
+            "quantity": t.quantity,
+            "side": t.side
+        }
+        for t in trades
+    ]
