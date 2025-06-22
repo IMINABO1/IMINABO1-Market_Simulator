@@ -9,8 +9,13 @@ int main() {
     rd_kafka_conf_t* conf = rd_kafka_conf_new();
 
     // Set the broker address
-    if (rd_kafka_conf_set(conf, "bootstrap.servers", "localhost:9092", errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
+    if (rd_kafka_conf_set(conf, "bootstrap.servers", "127.0.0.1:9092", errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
         std::cerr << "Error setting broker: " << errstr << std::endl;
+        return 1;
+    }
+
+    if (rd_kafka_conf_set(conf, "broker.address.family", "v4", errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
+        std::cerr << "Error setting address family: " << errstr << std::endl;
         return 1;
     }
 

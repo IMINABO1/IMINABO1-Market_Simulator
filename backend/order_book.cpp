@@ -110,9 +110,15 @@ void dr_msg_cb(rd_kafka_t *rk, const rd_kafka_message_t *rkmessage, void *opaque
 OrderBook::OrderBook() : _producer(nullptr), _conf(nullptr) {
     char errstr[512];
     _conf = rd_kafka_conf_new();
-    if (rd_kafka_conf_set(_conf, "bootstrap.servers", "localhost:9092",
+    if (rd_kafka_conf_set(_conf, "bootstrap.servers", "127.0.0.1:9092",
                           errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
         std::cerr << "Kafka config error: " << errstr << std::endl;
+        exit(1);
+    }
+    //forcing IPv4
+    if (rd_kafka_conf_set(_conf, "broker.address.family", "v4",
+                        errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
+        std::cerr << "Kafka config error (address family): " << errstr << std::endl;
         exit(1);
     }
     rd_kafka_conf_set_dr_msg_cb(_conf, dr_msg_cb);
