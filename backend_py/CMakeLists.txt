@@ -7,7 +7,10 @@ add_definitions(-DNOMINMAX)
 
 find_package(pybind11 CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
-find_package(RdKafka   CONFIG REQUIRED)   # ← this pulls in the C library
+
+# Use pkg-config to find rdkafka instead of CONFIG
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(RDKAFKA REQUIRED rdkafka)
 
 # your module
 pybind11_add_module(orderbook_cpp
@@ -16,9 +19,16 @@ pybind11_add_module(orderbook_cpp
 )
 
 target_link_libraries(orderbook_cpp PRIVATE
-  RdKafka::rdkafka           # ← only the C library
   nlohmann_json::nlohmann_json
-  Threads::Threads
+  ${RDKAFKA_LIBRARIES}
+)
+
+target_include_directories(orderbook_cpp PRIVATE
+  ${RDKAFKA_INCLUDE_DIRS}
+)
+
+target_compile_options(orderbook_cpp PRIVATE
+  ${RDKAFKA_CFLAGS_OTHER}
 )
 
 if(WIN32)

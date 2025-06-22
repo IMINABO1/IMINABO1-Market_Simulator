@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 import grpc
 import my_service_pb2, my_service_pb2_grpc
 import time
+import uvicorn
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -108,3 +109,6 @@ def get_trades():
         }
         for t in trades
     ]
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
